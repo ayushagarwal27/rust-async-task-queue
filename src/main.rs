@@ -56,4 +56,23 @@ impl Future for AsyncSleep {
     }
 }
 
-fn main() {}
+async fn sleeping(label: u8) {
+    println!("sleeping {}", label);
+    AsyncSleep::new(Duration::from_secs(3)).await;
+    println!("progressing sleep {}", label);
+    AsyncSleep::new(Duration::from_secs(2)).await;
+    println!("done sleeping {}", label);
+}
+fn main() {
+    let handle_one = spawn_task(sleeping(1));
+    let handle_two = spawn_task(sleeping(2));
+    let handle_three = spawn_task(sleeping(3));
+
+    println!("before the sleep");
+    std::thread::sleep(Duration::from_secs(5));
+    println!("before the block");
+
+    future::block_on(handle_one);
+    future::block_on(handle_two);
+    future::block_on(handle_three);
+}
